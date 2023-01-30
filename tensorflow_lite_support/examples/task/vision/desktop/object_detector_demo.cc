@@ -13,6 +13,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
+
+/***************************************
+This file has been modified from the original.
+Each edited section has comments explaining what has been changed
+***************************************/
+
 // Example usage:
 // bazel run -c opt \
 //  tensorflow_lite_support/examples/task/vision/desktop:object_detector_demo \
@@ -51,23 +57,20 @@ ABSL_FLAG(std::string, output_png, "",
           "of the input image. Must have a '.png' extension.");
 ABSL_FLAG(int32, max_results, 5,
           "Maximum number of detection results to display.");
+
+// MODIFIED: Changed default score threshold to 90%
 ABSL_FLAG(
-    float, score_threshold, std::numeric_limits<float>::lowest(),
+    float, score_threshold, 0.9,
     "Detection results with a confidence score below this value are "
     "rejected. If specified, overrides the score threshold(s) provided in the "
     "TFLite Model Metadata. Ignored otherwise.");
-ABSL_FLAG(
-    std::vector<std::string>, class_name_whitelist, {},
-    "Comma-separated list of class names that acts as a whitelist. If "
-    "non-empty, detections results whose 'class_name' is not in this list "
-    "are filtered out. Mutually exclusive with 'class_name_blacklist'.");
-ABSL_FLAG(std::vector<std::string>, class_name_blacklist, {},
-          "Comma-separated list of class names that acts as a blacklist. If "
-          "non-empty, detections results whose 'class_name' is in this list "
-          "are filtered out. Mutually exclusive with 'class_name_whitelist'.");
-ABSL_FLAG(bool, use_coral, false,
-          "If true, inference will be delegated to a connected Coral Edge TPU "
-          "device.");
+
+// MODIFIED: Added this flag, removed whitelist and blacklist flags, and the use_coral flag
+ABSL_FLAG(bool, verbose, false, 
+          "Will print out info about the inference if set as true. "
+          "Otherwise will only print out detection results or errors.");
+
+
 
 namespace tflite {
 namespace task {
@@ -102,24 +105,8 @@ ObjectDetectorOptions BuildOptions() {
   options.mutable_base_options()->mutable_model_file()->set_file_name(
       absl::GetFlag(FLAGS_model_path));
   options.set_max_results(absl::GetFlag(FLAGS_max_results));
-  if (absl::GetFlag(FLAGS_score_threshold) >
-      std::numeric_limits<float>::lowest()) {
-    options.set_score_threshold(absl::GetFlag(FLAGS_score_threshold));
-  }
-  for (const std::string& class_name :
-       absl::GetFlag(FLAGS_class_name_whitelist)) {
-    options.add_class_name_whitelist(class_name);
-  }
-  for (const std::string& class_name :
-       absl::GetFlag(FLAGS_class_name_blacklist)) {
-    options.add_class_name_blacklist(class_name);
-  }
-  if (absl::GetFlag(FLAGS_use_coral)) {
-    options.mutable_base_options()
-        ->mutable_compute_settings()
-        ->mutable_tflite_settings()
-        ->set_delegate(::tflite::proto::Delegate::EDGETPU_CORAL);
-  }
+  // MODIFIED: Removed code to do with removed flags
+  options.set_score_threshold(absl::GetFlag(FLAGS_score_threshold));
   return options;
 }
 
@@ -153,12 +140,16 @@ absl::Status EncodeResultToPngFile(const DetectionResult& result,
   // Encode to PNG and return.
   RETURN_IF_ERROR(
       EncodeImageToPngFile(*image, absl::GetFlag(FLAGS_output_png)));
-  std::cout << absl::StrFormat("Results saved to: %s\n",
-                               absl::GetFlag(FLAGS_output_png));
+  // MODIFIED: Changed to only print if verbose flag is true
+  if (absl::GetFlag(FLAGS_verbose)) {
+    std::cout << absl::StrFormat("Results saved to: %s\n",
+                                absl::GetFlag(FLAGS_output_png));
+  }
   return absl::OkStatus();
 }
 
-void DisplayResult(const DetectionResult& result) {
+// MODIFIED: Changed method name from DisplayResult to DisplayVerboseResult
+void DisplayVerboseResult(const DetectionResult& result) {
   std::cout << "Results:\n";
   for (int index = 0; index < result.detections_size(); ++index) {
     std::cout << absl::StrFormat(" Detection #%d (%s):\n", index,
@@ -173,8 +164,7 @@ void DisplayResult(const DetectionResult& result) {
     } else {
       std::cout << "  Top-1 class:\n";
       const Class& classification = detection.classes(0);
-      std::cout << absl::StrFormat("   index       : %d\n",
-                                   classification.index());
+      // MODIFIED: Removed printing the classification index
       std::cout << absl::StrFormat("   score       : %.5f\n",
                                    classification.score());
       if (classification.has_class_name()) {
@@ -187,6 +177,32 @@ void DisplayResult(const DetectionResult& result) {
       }
     }
   }
+}
+
+// MODIFIED: Added this method to print the results in a JSON format
+void DisplayJSONResult(const DetectionResult& result) {
+  std::cout << "{\n";
+  for (int index = 0; index < result.detections_size(); ++index) {
+    const Detection& detection = result.detections(index);
+    const BoundingBox& box = detection.bounding_box();
+    std::cout << absl::StrFormat("  \"detection %d\": {\n    \"box\": {\"x\": %d, \"y\": %d, \"w\": %d, \"h\": %d},\n",
+                                 index, box.origin_x(), box.origin_y(), box.width(),
+                                 box.height());
+    if (detection.classes_size() == 0) {
+      std::cout << "No top-1 class available";
+    } else {
+      const Class& classification = detection.classes(0);
+      std::cout << absl::StrFormat("    \"score\": %.5f,\n",
+                                   classification.score());
+      if (classification.has_class_name()) {
+        std::cout << absl::StrFormat("    \"class name\": \"%s\"\n  }%s\n",
+                                     classification.class_name(), index + 1 == result.detections_size() ? "" : ",");
+      } else {
+        std::cout << absl::StrFormat("    \"class name\": \"unknown\"\n  }%s\n", index + 1 == result.detections_size() ? "" : ",");
+      }
+    }
+  }
+  std::cout << "}\n";
 }
 
 absl::Status Detect() {
@@ -216,18 +232,27 @@ absl::Status Detect() {
   ASSIGN_OR_RETURN(DetectionResult result,
                    object_detector->Detect(*frame_buffer));
   auto end_detect = steady_clock::now();
-  std::string delegate =
-      absl::GetFlag(FLAGS_use_coral) ? "Coral Edge TPU" : "CPU";
-  std::cout << "Time cost to detect the input image on " << delegate << ": "
-            << std::chrono::duration<float, std::milli>(end_detect -
-                                                        start_detect)
-                   .count()
-            << " ms" << std::endl;
-
-  RETURN_IF_ERROR(EncodeResultToPngFile(result, &image));
-
-  // Display results as text.
-  DisplayResult(result);
+  // MODIFIED: Removed coral delegate option and made it only print if verbose flag is true
+  if (absl::GetFlag(FLAGS_verbose)) {
+    std::string delegate = "CPU";
+    std::cout << "Time cost to detect the input image on " << delegate << ": "
+              << std::chrono::duration<float, std::milli>(end_detect -
+                                                          start_detect)
+                    .count()
+              << " ms" << std::endl;
+  }
+  // MODIFIED: Changed to only save the result file if the output file option is present
+  if (!absl::GetFlag(FLAGS_output_png).empty()) {
+    RETURN_IF_ERROR(EncodeResultToPngFile(result, &image));
+  }
+  
+  // MODIFIED: If verbose flag is set to true, display verbose results, otherwise display the json result
+  if (absl::GetFlag(FLAGS_verbose)) {
+    // Display results as text.
+    DisplayVerboseResult(result);
+  } else {
+    DisplayJSONResult(result);
+  }
 
   // Cleanup and return.
   ImageDataFree(&image);
@@ -249,20 +274,12 @@ int main(int argc, char** argv) {
     std::cerr << "Missing mandatory 'image_path' argument.\n";
     return 1;
   }
-  if (absl::GetFlag(FLAGS_output_png).empty()) {
-    std::cerr << "Missing mandatory 'output_png' argument.\n";
-    return 1;
-  }
-  if (!absl::EndsWithIgnoreCase(absl::GetFlag(FLAGS_output_png), ".png")) {
+  // MODIFIED: Made output png flag not required 
+  if (!absl::GetFlag(FLAGS_output_png).empty() && !absl::EndsWithIgnoreCase(absl::GetFlag(FLAGS_output_png), ".png")) {
     std::cerr << "Argument 'output_png' must end with '.png' or '.PNG'\n";
     return 1;
   }
-  if (!absl::GetFlag(FLAGS_class_name_whitelist).empty() &&
-      !absl::GetFlag(FLAGS_class_name_blacklist).empty()) {
-    std::cerr << "'class_name_whitelist' and 'class_name_blacklist' arguments "
-                 "are mutually exclusive.\n";
-    return 1;
-  }
+  // MODIFIED: Removed setup for whitelist and blacklist
 
   // Run detection.
   absl::Status status = tflite::task::vision::Detect();
