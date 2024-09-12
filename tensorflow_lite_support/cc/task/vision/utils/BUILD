@@ -39,7 +39,6 @@ cc_library(
     ],
     visibility = ["//visibility:public"],
     deps = [
-        "//tensorflow_lite_support/cc/port:integral_types",
         "//tensorflow_lite_support/cc/port:status_macros",
         "//tensorflow_lite_support/cc/port:statusor",
         "//tensorflow_lite_support/cc/task/vision/core:frame_buffer",
@@ -64,7 +63,6 @@ cc_library(
     deps = [
         ":frame_buffer_common_utils",
         ":libyuv_frame_buffer_utils",
-        "//tensorflow_lite_support/cc/port:integral_types",
         "//tensorflow_lite_support/cc/port:status_macros",
         "//tensorflow_lite_support/cc/port:statusor",
         "//tensorflow_lite_support/cc/task/vision/core:frame_buffer",
@@ -91,7 +89,6 @@ cc_library(
     deps = [
         ":frame_buffer_common_utils",
         "//tensorflow_lite_support/cc:common",
-        "//tensorflow_lite_support/cc/port:integral_types",
         "//tensorflow_lite_support/cc/port:status_macros",
         "//tensorflow_lite_support/cc/port:statusor",
         "//tensorflow_lite_support/cc/task/vision/core:frame_buffer",
@@ -111,12 +108,14 @@ cc_library_with_tflite(
     ],
     deps = [
         "//tensorflow_lite_support/cc:common",
-        "//tensorflow_lite_support/cc/port:integral_types",
         "//tensorflow_lite_support/cc/port:status_macros",
         "//tensorflow_lite_support/cc/port:statusor",
         "//tensorflow_lite_support/metadata:metadata_schema_cc",
         "//tensorflow_lite_support/metadata/cc:metadata_extractor",
+        "@com_google_absl//absl/algorithm:container",
         "@com_google_absl//absl/status",
+        "@com_google_absl//absl/strings",
+        "@com_google_absl//absl/strings:string_view",
         "@com_google_absl//absl/types:optional",
         "@org_tensorflow//tensorflow/lite/c:common",
     ],
@@ -131,7 +130,6 @@ cc_library(
     ],
     deps = [
         ":frame_buffer_common_utils",
-        "//tensorflow_lite_support/cc/port:integral_types",
         "//tensorflow_lite_support/cc/port:status_macros",
         "//tensorflow_lite_support/cc/port:statusor",
         "//tensorflow_lite_support/cc/task/vision/core:frame_buffer",

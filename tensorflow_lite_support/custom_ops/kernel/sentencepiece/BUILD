@@ -176,8 +176,8 @@ cc_library(
         "//visibility:public",
     ],
     deps = [
-        ":sentencepiece_tokenizer_h",
         ":optimized_encoder",
+        ":sentencepiece_tokenizer_h",
     ] + micore_tf_deps(),
     alwayslink = 1,
 )
@@ -190,8 +190,8 @@ cc_binary(
     copts = micore_tf_copts(),
     linkshared = 1,
     deps = [
-        ":sentencepiece_tokenizer_h",
         ":optimized_encoder",
+        ":sentencepiece_tokenizer_h",
     ] + micore_tf_deps(),
 )
 
@@ -203,8 +203,8 @@ cc_library(
         "//visibility:public",
     ],
     deps = [
-        ":sentencepiece_detokenizer_h",
         ":optimized_decoder",
+        ":sentencepiece_detokenizer_h",
     ] + micore_tf_deps(),
     alwayslink = 1,
 )
@@ -217,8 +217,8 @@ cc_binary(
     copts = micore_tf_copts(),
     linkshared = 1,
     deps = [
-        ":sentencepiece_detokenizer_h",
         ":optimized_decoder",
+        ":sentencepiece_detokenizer_h",
     ] + micore_tf_deps(),
 )
 
@@ -274,7 +274,6 @@ cc_test(
         ":model_converter",
         ":optimized_encoder",
         "//tensorflow_lite_support/cc/test:test_utils",
-        "@com_google_absl//absl/flags:flag",
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/strings:str_format",
         "@com_google_googletest//:gtest_main",
@@ -298,7 +297,6 @@ cc_test(
         ":model_converter",
         ":optimized_decoder",
         "//tensorflow_lite_support/cc/test:test_utils",
-        "@com_google_absl//absl/flags:flag",
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/strings:str_format",
         "@com_google_googletest//:gtest_main",
@@ -340,12 +338,6 @@ config_setting(
 )
 
 config_setting(
-    name = "android",
-    values = {"crosstool_top": "//external:android/crosstool"},
-    visibility = ["//visibility:public"],
-)
-
-config_setting(
     name = "macos_i386",
     values = {
         "apple_platform_type": "macos",
@@ -376,7 +368,6 @@ alias(
 config_setting(
     name = "ios",
     values = {
-        "crosstool_top": "@bazel_tools//tools/cpp:toolchain",
         "apple_platform_type": "ios",
     },
     visibility = ["//visibility:public"],

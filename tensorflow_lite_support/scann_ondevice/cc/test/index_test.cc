@@ -19,10 +19,10 @@ limitations under the License.
 #include <memory>
 
 #include "tensorflow_lite_support/scann_ondevice/cc/core/serialized_searcher.pb.h"
-#include "absl/flags/flag.h"  // from @com_google_absl
+#include <gtest/gtest.h>
 #include "absl/status/status.h"  // from @com_google_absl
 #include "absl/strings/string_view.h"  // from @com_google_absl
-#include "tensorflow/lite/core/shims/cc/shims_test_util.h"
+#include "tensorflow/lite/test_util.h"
 #include "tensorflow_lite_support/cc/port/gmock.h"
 #include "tensorflow_lite_support/cc/port/gtest.h"
 #include "tensorflow_lite_support/cc/port/status_matchers.h"
@@ -47,8 +47,7 @@ constexpr char kDummyIndexPath[] =
 TEST(CreateFromOptionsTest, Succeeds) {
   // Load file in memory using ExternalFile.
   ExternalFile file;
-  file.set_file_name(
-      JoinPath("./" /*test src dir*/, kDummyIndexPath));
+  file.set_file_name(JoinPath(::testing::SrcDir(), kDummyIndexPath));
   SUPPORT_ASSERT_OK_AND_ASSIGN(std::unique_ptr<ExternalFileHandler> handler,
                        ExternalFileHandler::CreateFromExternalFile(&file));
   absl::string_view file_contents = handler->GetFileContent();
@@ -57,13 +56,12 @@ TEST(CreateFromOptionsTest, Succeeds) {
       Index::CreateFromIndexBuffer(file_contents.data(), file_contents.size()));
 }
 
-class IndexTest : public tflite_shims::testing::Test {
+class IndexTest : public tflite::testing::Test {
  public:
   IndexTest() {
     // Load file in memory using ExternalFile.
     ExternalFile file;
-    file.set_file_name(
-        JoinPath("./" /*test src dir*/, kDummyIndexPath));
+    file.set_file_name(JoinPath(::testing::SrcDir(), kDummyIndexPath));
     handler_ = ExternalFileHandler::CreateFromExternalFile(&file).value();
     absl::string_view file_contents = handler_->GetFileContent();
     // Build index.

@@ -1,5 +1,7 @@
-load("//tensorflow_lite_support/metadata:build_defs.bzl", "stamp_metadata_parser_version")
 # Placeholder for internal Python strict library compatibility macro.
+# Placeholder: load py_binary
+# Placeholder: load py_library
+load("//tensorflow_lite_support/metadata:build_defs.bzl", "stamp_metadata_parser_version")
 
 package(
     licenses = ["notice"],  # Apache 2.0

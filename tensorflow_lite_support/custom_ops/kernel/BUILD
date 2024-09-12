@@ -1,8 +1,7 @@
-# Placeholder for internal Python strict test compatibility macro.
 load("@org_tensorflow//tensorflow:tensorflow.bzl", "pybind_extension")
+# Placeholder for internal Python strict test compatibility macro.
 
 package(
-    default_visibility = ["//tensorflow_lite_support:users"],
     licenses = ["notice"],  # Apache 2.0
 )
 
@@ -34,7 +33,11 @@ pybind_extension(
     srcs = ["whitespace_tokenizer_op_resolver_wrapper.cc"],
     hdrs = ["whitespace_tokenizer_op_resolver.h"],
     additional_exported_symbols = ["AddWhitespaceTokenizerCustomOp"],
+    enable_stub_generation = True,
     module_name = "_pywrap_whitespace_tokenizer_op_resolver",
+    pytype_srcs = [
+        "_pywrap_whitespace_tokenizer_op_resolver.pyi",
+    ],
     visibility = ["//visibility:public"],
     deps = [
         ":whitespace_tokenizer_op_resolver",
@@ -70,6 +73,7 @@ py_test(
     srcs_version = "PY3",
     deps = [
         ":_pywrap_whitespace_tokenizer_op_resolver",
+        # build rule placeholder: google/protobuf:use_fast_cpp_protos dep,  # Automatically added go/proto_python_upb_flip
         # build rule placeholder: numpy dep,
         # build rule placeholder: tensorflow dep,
         # build rule placeholder: tensorflow_text dep,
@@ -106,7 +110,11 @@ pybind_extension(
     srcs = ["ngrams_op_resolver_wrapper.cc"],
     hdrs = ["ngrams_op_resolver.h"],
     additional_exported_symbols = ["AddNgramsCustomOp"],
+    enable_stub_generation = True,
     module_name = "_pywrap_ngrams_op_resolver",
+    pytype_srcs = [
+        "_pywrap_ngrams_op_resolver.pyi",
+    ],
     visibility = ["//visibility:public"],
     deps = [
         ":ngrams_op_resolver",
@@ -137,6 +145,7 @@ py_test(
     srcs_version = "PY3",
     deps = [
         ":_pywrap_ngrams_op_resolver",
+        # build rule placeholder: google/protobuf:use_fast_cpp_protos dep,  # Automatically added go/proto_python_upb_flip
         # build rule placeholder: tensorflow dep,
         # build rule placeholder: tensorflow_text dep,
         "//tensorflow_lite_support/custom_ops/python:tflite_text_api",

@@ -1,3 +1,5 @@
+# Placeholder: load py_test
+
 package(
     default_visibility = [
         "//visibility:public",
@@ -12,6 +14,7 @@ py_test(
     python_version = "PY3",
     srcs_version = "PY3",
     deps = [
+        # build rule placeholder: google/protobuf:use_fast_cpp_protos dep,  # Automatically added go/proto_python_upb_flip
         # build rule placeholder: six dep,
         # build rule placeholder: tensorflow dep,
         "//tensorflow_lite_support/metadata:metadata_schema_py",
@@ -27,6 +30,7 @@ py_test(
     python_version = "PY3",
     srcs_version = "PY2AND3",
     deps = [
+        # build rule placeholder: google/protobuf:use_fast_cpp_protos dep,  # Automatically added go/proto_python_upb_flip
         # build rule placeholder: tensorflow dep,
         "//tensorflow_lite_support/metadata/python:metadata",
     ],
@@ -43,6 +47,7 @@ py_test(
     python_version = "PY3",
     srcs_version = "PY3",
     deps = [
+        # build rule placeholder: google/protobuf:use_fast_cpp_protos dep,  # Automatically added go/proto_python_upb_flip
         # build rule placeholder: tensorflow dep,
         "//tensorflow_lite_support/metadata/python:metadata_writer_for_task",
         "//tensorflow_lite_support/metadata/python/tests/metadata_writers:test_utils",
